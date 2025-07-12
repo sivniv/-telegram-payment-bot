@@ -49,16 +49,34 @@ async def cmd_daily_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(report)
 
+async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /start command."""
+    try:
+        welcome_text = "👋 Welcome to Payment Bot!\n\n"
+        welcome_text += "I track kb_prasac_merchant_payment notifications.\n\n"
+        welcome_text += "Commands:\n"
+        welcome_text += "/daily - Today's report\n"
+        welcome_text += "/help - Show help"
+        
+        await update.message.reply_text(welcome_text)
+        logger.info("Start command executed successfully")
+    except Exception as e:
+        logger.error(f"Error in start command: {e}")
+
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show help message."""
-    help_text = """🤖 Payment Bot Commands
-
-/daily - Today's payment report
-/help - Show this help
-
-I automatically track kb_prasac_merchant_payment notifications."""
-    
-    await update.message.reply_text(help_text)
+    try:
+        help_text = "🤖 Payment Bot Commands\n\n"
+        help_text += "/daily - Today's payment report\n"
+        help_text += "/help - Show this help\n"
+        help_text += "/start - Welcome message\n\n"
+        help_text += "I automatically track kb_prasac_merchant_payment notifications."
+        
+        await update.message.reply_text(help_text)
+        logger.info("Help command executed successfully")
+    except Exception as e:
+        logger.error(f"Error in help command: {e}")
+        await update.message.reply_text("Bot is working! ✅")
 
 def main():
     """Start the bot."""
@@ -73,6 +91,7 @@ def main():
     
     # Add handlers
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("daily", cmd_daily_report))
     app.add_handler(CommandHandler("help", cmd_help))
     
