@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Payment Bot SaaS - Multi-tenant Telegram Payment Tracking Bot
+Copyright (c) 2025 Sochetra. All rights reserved.
+
+This software is proprietary and confidential. Unauthorized copying, distribution,
+or use of this software is strictly prohibited.
+"""
+
 import logging
 from datetime import datetime
 from telegram import Update
@@ -7,6 +15,12 @@ from payment_parser import PaymentParser
 from transaction_storage import TransactionStorage
 from group_settings import GroupSettingsManager
 from admin_utils import admin_only_command, get_user_info
+from auth_middleware import require_auth, require_feature, AuthMiddleware
+from client_manager import ClientManager
+from admin_interface import (
+    cmd_admin_help, cmd_create_client, cmd_list_clients, 
+    cmd_client_info, cmd_upgrade_client, cmd_add_group, cmd_system_stats
+)
 from config import TELEGRAM_BOT_TOKEN
 
 logging.basicConfig(
@@ -19,11 +33,18 @@ logger = logging.getLogger(__name__)
 parser = PaymentParser()
 storage = TransactionStorage()
 settings_manager = GroupSettingsManager()
+auth_middleware = AuthMiddleware()
+client_manager = ClientManager()
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle incoming messages and parse payment notifications."""
     if not update.message or not update.message.text:
         return
+    
+    # Authenticate the group first
+    client = await auth_middleware.authenticate_group(update, context)
+    if not client:
+        return  # Unauthorized group or inactive subscription
     
     message_text = update.message.text
     group_id = str(update.effective_chat.id)
@@ -31,10 +52,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Try to parse as payment notification
     transaction = parser.parse_payment(message_text, group_id)
     if transaction:
+        # Add client information to transaction
+        transaction['client_id'] = client['client_id']
+        
         success = storage.save_transaction(transaction)
         if success:
-            logger.info(f"💰 Payment recorded: ${transaction['amount']} from {transaction['payer']} via {transaction['source']}")
+            # Log transaction for billing
+            auth_middleware.log_transaction(client, transaction)
+            logger.info(f"💰 Payment recorded for client {client['client_id']}: ${transaction['amount']} from {transaction['payer']} via {transaction['source']}")
 
+@require_auth
 async def cmd_daily_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Generate daily report for today."""
     user = update.effective_user
@@ -58,6 +85,7 @@ async def cmd_daily_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(report)
     logger.info(f"DAILY command used by: {user_info} (ID: {user.id}) - Showed {summary['transaction_count']} transactions")
 
+@require_auth
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
     try:
@@ -75,6 +103,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in start command: {e}")
 
+@require_auth
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show help message."""
     try:
@@ -98,6 +127,8 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error in help command: {e}")
         await update.message.reply_text("Bot is working! ✅")
 
+@require_auth
+@require_feature('multi_payment_sources')
 async def cmd_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show current group configuration."""
     if not await admin_only_command(update, context):
@@ -124,6 +155,8 @@ async def cmd_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error in config command: {e}")
         await update.message.reply_text("❌ Error retrieving configuration.")
 
+@require_auth
+@require_feature('multi_payment_sources')
 async def cmd_sources(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """List available payment sources."""
     if not await admin_only_command(update, context):
@@ -148,6 +181,8 @@ async def cmd_sources(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error in sources command: {e}")
         await update.message.reply_text("❌ Error retrieving payment sources.")
 
+@require_auth
+@require_feature('multi_payment_sources')
 async def cmd_set_source(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Set payment source for the group."""
     if not await admin_only_command(update, context):
@@ -205,6 +240,15 @@ def main():
     app.add_handler(CommandHandler("config", cmd_config))
     app.add_handler(CommandHandler("sources", cmd_sources))
     app.add_handler(CommandHandler("set_source", cmd_set_source))
+    
+    # Admin commands
+    app.add_handler(CommandHandler("admin_help", cmd_admin_help))
+    app.add_handler(CommandHandler("admin_create_client", cmd_create_client))
+    app.add_handler(CommandHandler("admin_list_clients", cmd_list_clients))
+    app.add_handler(CommandHandler("admin_client_info", cmd_client_info))
+    app.add_handler(CommandHandler("admin_upgrade_client", cmd_upgrade_client))
+    app.add_handler(CommandHandler("admin_add_group", cmd_add_group))
+    app.add_handler(CommandHandler("admin_stats", cmd_system_stats))
     
     print("✅ Bot is running! Send /help in your group to test.")
     

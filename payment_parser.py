@@ -1,3 +1,8 @@
+"""
+Payment Parser for Payment Bot SaaS
+Copyright (c) 2025 Sochetra. All rights reserved.
+"""
+
 import re
 from datetime import datetime
 from typing import Optional, Dict, Any

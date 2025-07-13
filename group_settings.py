@@ -10,7 +10,7 @@ class GroupSettingsManager:
         # Default payment source configurations
         self.default_sources = {
             'kb_prasac_merchant_payment': {
-                'identifier': 'kb_prasac_merchant_payment',
+                'identifier': 'Received Payment Amount',
                 'name': 'KB Prasac Merchant Payment',
                 'amount_pattern': r'Received Payment Amount\s+([\d.]+)\s+USD',
                 'payer_pattern': r'- Paid by:\s+([^/]+)\s+/',
