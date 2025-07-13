@@ -5,6 +5,8 @@ from telegram import Update
 from telegram.ext import Application, MessageHandler, CommandHandler, filters, ContextTypes
 from payment_parser import PaymentParser
 from transaction_storage import TransactionStorage
+from group_settings import GroupSettingsManager
+from admin_utils import admin_only_command, get_user_info
 from config import TELEGRAM_BOT_TOKEN
 
 logging.basicConfig(
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Initialize components
 parser = PaymentParser()
 storage = TransactionStorage()
+settings_manager = GroupSettingsManager()
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle incoming messages and parse payment notifications."""
@@ -23,21 +26,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     message_text = update.message.text
+    group_id = str(update.effective_chat.id)
     
     # Try to parse as payment notification
-    transaction = parser.parse_payment(message_text)
+    transaction = parser.parse_payment(message_text, group_id)
     if transaction:
         success = storage.save_transaction(transaction)
         if success:
-            logger.info(f"💰 Payment recorded: ${transaction['amount']} from {transaction['payer']}")
+            logger.info(f"💰 Payment recorded: ${transaction['amount']} from {transaction['payer']} via {transaction['source']}")
 
 async def cmd_daily_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Generate daily report for today."""
+    user = update.effective_user
+    user_info = f"@{user.username}" if user.username else f"{user.first_name}"
+    
     date_str = datetime.now().strftime('%Y-%m-%d')
     summary = storage.get_daily_summary(date_str)
     
     if summary['transaction_count'] == 0:
         await update.message.reply_text(f"📊 No transactions found for {date_str}")
+        logger.info(f"DAILY command used by: {user_info} (ID: {user.id}) - No transactions")
         return
     
     report = f"📊 Daily Report - {date_str}\n\n"
@@ -48,10 +56,14 @@ async def cmd_daily_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         report += f"{i}. ${t['amount']:.2f} - {t['payer']}\n"
     
     await update.message.reply_text(report)
+    logger.info(f"DAILY command used by: {user_info} (ID: {user.id}) - Showed {summary['transaction_count']} transactions")
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
     try:
+        user = update.effective_user
+        user_info = f"@{user.username}" if user.username else f"{user.first_name}"
+        
         welcome_text = "👋 Welcome to Payment Bot!\n\n"
         welcome_text += "I track kb_prasac_merchant_payment notifications.\n\n"
         welcome_text += "Commands:\n"
@@ -59,24 +71,120 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         welcome_text += "/help - Show help"
         
         await update.message.reply_text(welcome_text)
-        logger.info("Start command executed successfully")
+        logger.info(f"START command used by: {user_info} (ID: {user.id})")
     except Exception as e:
         logger.error(f"Error in start command: {e}")
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show help message."""
     try:
+        user = update.effective_user
+        user_info = f"@{user.username}" if user.username else f"{user.first_name}"
+        
         help_text = "🤖 Payment Bot Commands\n\n"
+        help_text += "📊 Reports:\n"
         help_text += "/daily - Today's payment report\n"
-        help_text += "/help - Show this help\n"
         help_text += "/start - Welcome message\n\n"
-        help_text += "I automatically track kb_prasac_merchant_payment notifications."
+        help_text += "⚙️ Configuration (Admin only):\n"
+        help_text += "/config - Show current settings\n"
+        help_text += "/sources - List available payment sources\n"
+        help_text += "/set_source <source> - Set payment source\n\n"
+        help_text += "/help - Show this help\n\n"
+        help_text += "I automatically track payment notifications from various sources."
         
         await update.message.reply_text(help_text)
-        logger.info("Help command executed successfully")
+        logger.info(f"HELP command used by: {user_info} (ID: {user.id})")
     except Exception as e:
         logger.error(f"Error in help command: {e}")
         await update.message.reply_text("Bot is working! ✅")
+
+async def cmd_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show current group configuration."""
+    if not await admin_only_command(update, context):
+        return
+        
+    try:
+        group_id = str(update.effective_chat.id)
+        user_info = get_user_info(update)
+        
+        settings = settings_manager.get_group_settings(group_id)
+        config = settings_manager.get_payment_config(group_id)
+        
+        config_text = "⚙️ Current Configuration\n\n"
+        config_text += f"💳 Payment Source: {config.get('name', 'Unknown')}\n"
+        config_text += f"🔧 Identifier: {config.get('identifier', 'N/A')}\n"
+        config_text += f"📱 Status: {'✅ Enabled' if settings.get('enabled', True) else '❌ Disabled'}\n"
+        config_text += f"👑 Admin Only Config: {'Yes' if settings.get('admin_only_config', True) else 'No'}\n\n"
+        config_text += f"Description: {config.get('description', 'No description available')}"
+        
+        await update.message.reply_text(config_text)
+        logger.info(f"CONFIG command used by: {user_info['display_name']} (ID: {user_info['id']})")
+        
+    except Exception as e:
+        logger.error(f"Error in config command: {e}")
+        await update.message.reply_text("❌ Error retrieving configuration.")
+
+async def cmd_sources(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """List available payment sources."""
+    if not await admin_only_command(update, context):
+        return
+        
+    try:
+        user_info = get_user_info(update)
+        sources = settings_manager.get_available_sources()
+        
+        sources_text = "💳 Available Payment Sources\n\n"
+        for key, source in sources.items():
+            sources_text += f"🔹 {source['name']}\n"
+            sources_text += f"   Command: /set_source {key}\n"
+            sources_text += f"   {source['description']}\n\n"
+        
+        sources_text += "💡 Usage: /set_source <source_key>"
+        
+        await update.message.reply_text(sources_text)
+        logger.info(f"SOURCES command used by: {user_info['display_name']} (ID: {user_info['id']})")
+        
+    except Exception as e:
+        logger.error(f"Error in sources command: {e}")
+        await update.message.reply_text("❌ Error retrieving payment sources.")
+
+async def cmd_set_source(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Set payment source for the group."""
+    if not await admin_only_command(update, context):
+        return
+        
+    try:
+        group_id = str(update.effective_chat.id)
+        user_info = get_user_info(update)
+        
+        if not context.args:
+            await update.message.reply_text("❌ Please specify a payment source.\nUsage: /set_source <source>\n\nUse /sources to see available options.")
+            return
+        
+        source_key = context.args[0].lower()
+        available_sources = settings_manager.get_available_sources()
+        
+        if source_key not in available_sources:
+            await update.message.reply_text(f"❌ Unknown payment source: {source_key}\n\nUse /sources to see available options.")
+            return
+        
+        success = settings_manager.set_payment_source(group_id, source_key)
+        
+        if success:
+            source_info = available_sources[source_key]
+            success_text = f"✅ Payment source updated!\n\n"
+            success_text += f"💳 Now tracking: {source_info['name']}\n"
+            success_text += f"🔧 Identifier: {source_info['identifier']}\n"
+            success_text += f"📝 Description: {source_info['description']}"
+            
+            await update.message.reply_text(success_text)
+            logger.info(f"SET_SOURCE command used by: {user_info['display_name']} - Changed to {source_key}")
+        else:
+            await update.message.reply_text("❌ Failed to update payment source.")
+            
+    except Exception as e:
+        logger.error(f"Error in set_source command: {e}")
+        await update.message.reply_text("❌ Error updating payment source.")
 
 def main():
     """Start the bot."""
@@ -94,6 +202,9 @@ def main():
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("daily", cmd_daily_report))
     app.add_handler(CommandHandler("help", cmd_help))
+    app.add_handler(CommandHandler("config", cmd_config))
+    app.add_handler(CommandHandler("sources", cmd_sources))
+    app.add_handler(CommandHandler("set_source", cmd_set_source))
     
     print("✅ Bot is running! Send /help in your group to test.")
     
