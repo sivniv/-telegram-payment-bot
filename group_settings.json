@@ -1,0 +1,14 @@
+{
+  "test_group_2": {
+    "payment_source": "aba_bank",
+    "custom_patterns": null,
+    "enabled": true,
+    "admin_only_config": true
+  },
+  "test_group_1": {
+    "payment_source": "wing_money",
+    "custom_patterns": null,
+    "enabled": true,
+    "admin_only_config": true
+  }
+}
