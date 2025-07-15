@@ -5,12 +5,15 @@ Copyright (c) 2025 Sochetra. All rights reserved.
 
 import logging
 from datetime import datetime
+
 from telegram import Update
 from telegram.ext import ContextTypes
-from client_manager import ClientManager
+
 from auth_middleware import AuthMiddleware
+from client_manager import ClientManager
 
 logger = logging.getLogger(__name__)
+
 
 class AdminInterface:
     def __init__(self, admin_user_ids: list = None):
@@ -18,17 +21,17 @@ class AdminInterface:
         self.auth_middleware = AuthMiddleware()
         # Add your Telegram user ID here for admin access
         self.admin_user_ids = admin_user_ids or []  # Add your user ID: [123456789]
-    
+
     def is_admin(self, user_id: int) -> bool:
         """Check if user is an admin."""
         return user_id in self.admin_user_ids
-    
+
     async def cmd_admin_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show admin commands."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         help_text = """
 🔧 **Admin Commands**
 
@@ -54,30 +57,32 @@ class AdminInterface:
 • premium: $9.99/month, 10,000 transactions, 3 groups
 • enterprise: $19.99/month, 100,000 transactions, 10 groups
         """
-        
-        await update.message.reply_text(help_text, parse_mode='Markdown')
-    
+
+        await update.message.reply_text(help_text, parse_mode="Markdown")
+
     async def cmd_create_client(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Create a new client account."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         if len(context.args) < 2:
             await update.message.reply_text("Usage: /admin_create_client <email> <company> [plan]")
             return
-        
+
         email = context.args[0]
         company = context.args[1]
-        plan = context.args[2] if len(context.args) > 2 else 'free'
-        
+        plan = context.args[2] if len(context.args) > 2 else "free"
+
         if plan not in self.client_manager.plans:
-            await update.message.reply_text(f"❌ Invalid plan. Available: {', '.join(self.client_manager.plans.keys())}")
+            await update.message.reply_text(
+                f"❌ Invalid plan. Available: {', '.join(self.client_manager.plans.keys())}"
+            )
             return
-        
+
         try:
             result = self.client_manager.create_client(email, company, plan)
-            
+
             response = f"""
 ✅ **Client Created Successfully**
 
@@ -89,29 +94,29 @@ class AdminInterface:
 
 ⚠️ **Important:** Save the API key securely. It won't be shown again.
             """
-            
-            await update.message.reply_text(response, parse_mode='Markdown')
+
+            await update.message.reply_text(response, parse_mode="Markdown")
             logger.info(f"Admin {update.effective_user.id} created client: {email}")
-            
+
         except Exception as e:
             await update.message.reply_text(f"❌ Error creating client: {str(e)}")
             logger.error(f"Error creating client: {e}")
-    
+
     async def cmd_list_clients(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """List all clients."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         try:
             clients = self.client_manager.list_clients()
-            
+
             if not clients:
                 await update.message.reply_text("📭 No clients found.")
                 return
-            
+
             response = "👥 **All Clients**\n\n"
-            
+
             for client in clients[:10]:  # Show first 10
                 response += f"🏢 {client['company_name']}\n"
                 response += f"   📧 {client['email']}\n"
@@ -120,35 +125,35 @@ class AdminInterface:
                 response += f"   📱 {client['status'].title()}\n"
                 response += f"   🏘️ {client['groups_count']} groups\n"
                 response += f"   📊 {client['monthly_transactions']} transactions\n\n"
-            
+
             if len(clients) > 10:
                 response += f"... and {len(clients) - 10} more clients"
-            
-            await update.message.reply_text(response, parse_mode='Markdown')
-            
+
+            await update.message.reply_text(response, parse_mode="Markdown")
+
         except Exception as e:
             await update.message.reply_text(f"❌ Error listing clients: {str(e)}")
-    
+
     async def cmd_client_info(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Get detailed client information."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         if not context.args:
             await update.message.reply_text("Usage: /admin_client_info <client_id>")
             return
-        
+
         client_id = context.args[0]
         client = self.client_manager.get_client(client_id)
-        
+
         if not client:
             await update.message.reply_text("❌ Client not found.")
             return
-        
-        plan_info = self.client_manager.plans[client['plan']]
-        usage = client.get('monthly_usage', {})
-        
+
+        plan_info = self.client_manager.plans[client["plan"]]
+        usage = client.get("monthly_usage", {})
+
         response = f"""
 👤 **Client Details**
 
@@ -165,76 +170,86 @@ class AdminInterface:
 
 🏘️ **Groups:**
         """
-        
-        for group in client.get('groups', []):
+
+        for group in client.get("groups", []):
             response += f"• {group['group_name']} (`{group['group_id']}`)\n"
-        
-        await update.message.reply_text(response, parse_mode='Markdown')
-    
+
+        await update.message.reply_text(response, parse_mode="Markdown")
+
     async def cmd_upgrade_client(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Upgrade client plan."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         if len(context.args) != 2:
             await update.message.reply_text("Usage: /admin_upgrade_client <client_id> <new_plan>")
             return
-        
+
         client_id, new_plan = context.args
-        
+
         if new_plan not in self.client_manager.plans:
-            await update.message.reply_text(f"❌ Invalid plan. Available: {', '.join(self.client_manager.plans.keys())}")
+            await update.message.reply_text(
+                f"❌ Invalid plan. Available: {', '.join(self.client_manager.plans.keys())}"
+            )
             return
-        
+
         success = self.client_manager.upgrade_plan(client_id, new_plan)
-        
+
         if success:
             plan_info = self.client_manager.plans[new_plan]
             await update.message.reply_text(f"✅ Client upgraded to {plan_info['name']}")
-            logger.info(f"Admin {update.effective_user.id} upgraded client {client_id} to {new_plan}")
+            logger.info(
+                f"Admin {update.effective_user.id} upgraded client {client_id} to {new_plan}"
+            )
         else:
             await update.message.reply_text("❌ Failed to upgrade client.")
-    
+
     async def cmd_add_group(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Add group to client."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         if len(context.args) != 3:
-            await update.message.reply_text("Usage: /admin_add_group <client_id> <group_id> <group_name>")
+            await update.message.reply_text(
+                "Usage: /admin_add_group <client_id> <group_id> <group_name>"
+            )
             return
-        
+
         client_id, group_id, group_name = context.args
-        
+
         success = self.client_manager.add_group_to_client(client_id, group_id, group_name)
-        
+
         if success:
             await update.message.reply_text(f"✅ Group '{group_name}' added to client.")
-            logger.info(f"Admin {update.effective_user.id} added group {group_id} to client {client_id}")
+            logger.info(
+                f"Admin {update.effective_user.id} added group {group_id} to client {client_id}"
+            )
         else:
-            await update.message.reply_text("❌ Failed to add group. Check client exists and group limit.")
-    
+            await update.message.reply_text(
+                "❌ Failed to add group. Check client exists and group limit."
+            )
+
     async def cmd_system_stats(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show system statistics."""
         if not self.is_admin(update.effective_user.id):
             await update.message.reply_text("❌ Admin access required.")
             return
-        
+
         try:
             clients = self.client_manager.list_clients()
-            
+
             total_clients = len(clients)
-            active_clients = len([c for c in clients if c['status'] == 'active'])
-            total_groups = sum(c['groups_count'] for c in clients)
-            total_transactions = sum(c['monthly_transactions'] for c in clients)
-            
+            active_clients = len([c for c in clients if c["status"] == "active"])
+            total_groups = sum(c["groups_count"] for c in clients)
+            total_transactions = sum(c["monthly_transactions"] for c in clients)
+
             plan_distribution = {}
             for client in clients:
-                plan = client['plan']
+                plan = client["plan"]
                 plan_distribution[plan] = plan_distribution.get(plan, 0) + 1
-            
+
             response = f"""
 📊 **System Statistics**
 
@@ -248,15 +263,16 @@ class AdminInterface:
 
 📊 **Plan Distribution:**
             """
-            
+
             for plan, count in plan_distribution.items():
-                plan_name = self.client_manager.plans[plan]['name']
+                plan_name = self.client_manager.plans[plan]["name"]
                 response += f"• {plan_name}: {count}\n"
-            
-            await update.message.reply_text(response, parse_mode='Markdown')
-            
+
+            await update.message.reply_text(response, parse_mode="Markdown")
+
         except Exception as e:
             await update.message.reply_text(f"❌ Error getting stats: {str(e)}")
+
 
 # Admin command handlers for the main bot
 admin_interface = AdminInterface()

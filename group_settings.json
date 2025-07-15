@@ -10,5 +10,18 @@
     "custom_patterns": null,
     "enabled": true,
     "admin_only_config": true
+  },
+  "test_group_123": {
+    "payment_source": "kb_prasac_merchant_payment",
+    "custom_patterns": null,
+    "enabled": true,
+    "admin_only_config": true,
+    "payment_sources": {
+      "test_source": {
+        "identifier": "TEST",
+        "amount_pattern": "Amount:\\s*([\\d.]+)",
+        "payer_pattern": "From:\\s*([^\\\\n]+)"
+      }
+    }
   }
 }

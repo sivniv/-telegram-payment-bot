@@ -1,1 +1,244 @@
-[]
+[
+  {
+    "date": "2025-01-15",
+    "timestamp": "2025-01-15T10:30:00",
+    "amount": 25.5,
+    "payer": "Z0FBQUFBQm9kbmh4NVdFM1Q0a2ltOElkcnBCWnowMXZzdVhYUS16aGZBeDdoZUdPcTZ6dFdSY3FnSEFLNWhxcGNELXhFeTNFQ3JVZVhYcXRnWU9GU0VQbEt2NUVkenViZUE9PQ==",
+    "type": "income",
+    "source": "KB Prasac",
+    "group_id": "Z0FBQUFBQm9kbmh4ak9pdkNEeENzeFBJMVRFZkNWQlgwUDVTazNEdkpyUEg3ZlZPZ18zMmRIeDBCTFdnQW9hMmxRM3h3MGQ0eFc0UnpyTUZPWl9xcUEtR3JtQzAzMkQxc2c9PQ==",
+    "payer_encrypted": true,
+    "group_id_encrypted": true
+  },
+  {
+    "date": "2025-01-15",
+    "timestamp": "2025-01-15T10:30:00",
+    "amount": 25.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac",
+    "group_id": "test_group_123"
+  },
+  {
+    "amount": 25.5,
+    "payer": "JOHN DOE",
+    "source": "kb_prasac",
+    "group_id": "test_group",
+    "timestamp": "2025-07-15T22:59:08.487225"
+  },
+  {
+    "amount": 25.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group",
+    "timestamp": "2025-07-15T23:08:37.525872",
+    "date": "2025-07-15"
+  },
+  {
+    "amount": 100.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:08:37.767252",
+    "date": "2025-07-15"
+  },
+  {
+    "amount": 50.25,
+    "payer": "SUMMARY TEST",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:08:37.795691",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-01-15",
+    "timestamp": "2025-01-15T10:30:00",
+    "amount": 25.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac",
+    "group_id": "test_group_123"
+  },
+  {
+    "amount": 25.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group",
+    "timestamp": "2025-07-15T23:09:10.949651",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:09:10.954387",
+    "amount": 100.0,
+    "payer": "MESSAGE TEST",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "-67890"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:09:11.001016",
+    "amount": 4.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "test_group"
+  },
+  {
+    "amount": 100.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:09:11.146261",
+    "date": "2025-07-15"
+  },
+  {
+    "amount": 50.25,
+    "payer": "SUMMARY TEST",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:09:11.175294",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:09:11.233229",
+    "amount": 77.77,
+    "payer": "PIPELINE TEST",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "test_group_123"
+  },
+  {
+    "date": "2025-01-15",
+    "timestamp": "2025-01-15T10:30:00",
+    "amount": 25.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac",
+    "group_id": "test_group_123"
+  },
+  {
+    "amount": 25.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group",
+    "timestamp": "2025-07-15T23:09:28.967367",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:09:28.971976",
+    "amount": 100.0,
+    "payer": "MESSAGE TEST",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "-67890"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:09:29.018001",
+    "amount": 4.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "test_group"
+  },
+  {
+    "amount": 100.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:09:29.166142",
+    "date": "2025-07-15"
+  },
+  {
+    "amount": 50.25,
+    "payer": "SUMMARY TEST",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:09:29.195373",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:09:29.253942",
+    "amount": 77.77,
+    "payer": "PIPELINE TEST",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "test_group_123"
+  },
+  {
+    "date": "2025-01-15",
+    "timestamp": "2025-01-15T10:30:00",
+    "amount": 25.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac",
+    "group_id": "test_group_123"
+  },
+  {
+    "amount": 25.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group",
+    "timestamp": "2025-07-15T23:12:32.031307",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:12:32.042362",
+    "amount": 100.0,
+    "payer": "MESSAGE TEST",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "-67890"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:12:32.092749",
+    "amount": 4.5,
+    "payer": "JOHN DOE",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "test_group"
+  },
+  {
+    "amount": 100.5,
+    "payer": "TEST USER",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:12:32.266115",
+    "date": "2025-07-15"
+  },
+  {
+    "amount": 50.25,
+    "payer": "SUMMARY TEST",
+    "source": "kb_prasac",
+    "group_id": "test_group_123",
+    "timestamp": "2025-07-15T23:12:32.296598",
+    "date": "2025-07-15"
+  },
+  {
+    "date": "2025-07-15",
+    "timestamp": "2025-07-15T23:12:32.355073",
+    "amount": 77.77,
+    "payer": "PIPELINE TEST",
+    "type": "income",
+    "source": "KB Prasac Merchant Payment",
+    "group_id": "test_group_123"
+  },
+  {
+    "date": "2025-01-15",
+    "timestamp": "2025-01-15T10:30:00",
+    "amount": 25.5,
+    "payer": "Z0FBQUFBQm9kbjN3SzNoZGRoaUFQcThkQXdENDhzaU5xQ1pmNkZJcHJtaEpNRHpIQ2Q0VmVyT2pEZHlDeU93QjdqcHR2a0l2Ym44elg0RHRwaE8tLWh2dEg4dHFENlFmSkE9PQ==",
+    "type": "income",
+    "source": "KB Prasac",
+    "group_id": "Z0FBQUFBQm9kbjN3TmFEMW9SaGFacERXVG9ldUhubERwWVh0U1M1NWNyRVk5VXFyWkNsV2RSWE54RjhybDBoYTRqdzBVX3RKaW9obFJONk9zTmlZZWxJUzdrVFZubkhkdUE9PQ==",
+    "payer_encrypted": true,
+    "group_id_encrypted": true
+  }
+]

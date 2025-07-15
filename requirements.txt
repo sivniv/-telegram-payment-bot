@@ -1,3 +1,8 @@
+# Core dependencies
 python-telegram-bot>=20.0
 schedule==1.2.0
 python-dotenv==1.0.0
+cryptography>=41.0.0
+
+# Development dependencies (install with: pip install -r requirements-dev.txt)
+# See requirements-dev.txt for development tools
